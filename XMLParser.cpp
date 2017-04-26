@@ -17,8 +17,20 @@ XMLParser::reset()
 }
 
 XMLParser::State
-XMLParser::state() const {
+XMLParser::state() const
+{
   return m_state;
+}
+
+void
+XMLParser::updateDNS()
+{
+  IPAddress hostIP;
+  if (WiFi.hostByName(hostname(), hostIP)) {
+    m_hostnameIP = hostIP;
+  } else {
+    Serial.println("Could not resolve DNS!");
+  }
 }
 
 XMLParser::State
@@ -31,12 +43,17 @@ XMLParser::update()
     m_client.stop();
     m_xml.reset();
     m_streamer.reset();
-    if (makeRequest(m_client)) {
+    if (!m_hostnameIP) {
+      updateDNS();
+    }
+    if (m_client.connect(m_hostnameIP, 80)) {
+      makeRequest(m_client);
       Serial.println("Request ready!");
       m_state = Parsing;
     } else {
       Serial.println("Could not start request!");
       m_state = Error;
+      updateDNS();
     }
   }
   if (m_state == Parsing) {
@@ -62,4 +79,3 @@ XMLParser::xml_callback_curry(uint8_t statusFlags, char* tagName,
   uint16_t tagNameLen, char* data, uint16_t dataLen) {
   s_parsingInstance->xml_callback(statusFlags, tagName, tagNameLen, data, dataLen);
 }
-

@@ -24,8 +24,11 @@ class BartParser : public XMLParser {
   protected:
     void xml_callback(uint8_t statusFlags, char* tagName,
       uint16_t tagNameLen, char* data, uint16_t dataLen) override;
-    bool makeRequest(WiFiClient& client) override;
+    void makeRequest(WiFiClient& client) override;
     void beforeUpdate() override;
+    const char* hostname() const override {
+      return "api.bart.gov";
+    }
 
   private:
     const char* m_destination;

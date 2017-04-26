@@ -7,23 +7,16 @@ BartParser::BartParser(const char* destination, const char* station) :
 {
 }
 
-bool
+void
 BartParser::makeRequest(WiFiClient& client)
 {
-  const char* hostname = "api.bart.gov";
   Serial.println("Downloading BART data");
-  int c;
-  if (client.connect(hostname, 80)) {
-    client.print("GET /api/etd.aspx?cmd=etd&orig=");
-    client.print(m_station);
-    client.print("&key=ZVZJ-PMTI-9J6T-DWE9");
-    client.print(" HTTP/1.1\r\nHost: ");
-    client.print(hostname);
-    client.print("\r\nConnection: Close\r\n\r\n");
-    return true;
-  } else {
-    return false;
-  }
+  client.print("GET /api/etd.aspx?cmd=etd&orig=");
+  client.print(m_station);
+  client.print("&key=ZVZJ-PMTI-9J6T-DWE9");
+  client.print(" HTTP/1.1\r\nHost: ");
+  client.print(hostname());
+  client.print("\r\nConnection: Close\r\n\r\n");
 }
 
 std::tuple<uint32_t, uint32_t>

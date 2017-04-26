@@ -12,29 +12,20 @@ NextbusParser::NextbusParser(const char* agency, const char* route, const char* 
 {
 }
 
-bool
+void
 NextbusParser::makeRequest(WiFiClient& client)
 {
-  const char* hostname = "webservices.nextbus.com";
   Serial.print("Downloading nextbus data for ");
   Serial.println(m_route);
-  bool ready = false;
-  if(client.connect(hostname, 80)) {
-    client.print("GET /service/publicXMLFeed?command=predictions&a=");
-    client.print(m_agency);
-    client.print("&r=");
-    client.print(m_route);
-    client.print("&s=");
-    client.print(m_stopID);
-    client.print(" HTTP/1.1\r\nHost: ");
-    client.print(hostname);
-    client.print("\r\nConnection: Close\r\n\r\n");
-    Serial.println("Connected!");
-    return true;
-  } else {
-    Serial.println("Could not connect!");
-    return false;
-  }
+  client.print("GET /service/publicXMLFeed?command=predictions&a=");
+  client.print(m_agency);
+  client.print("&r=");
+  client.print(m_route);
+  client.print("&s=");
+  client.print(m_stopID);
+  client.print(" HTTP/1.1\r\nHost: ");
+  client.print(hostname());
+  client.print("\r\nConnection: Close\r\n\r\n");
 }
 
 std::tuple<uint32_t, uint32_t>
