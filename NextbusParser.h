@@ -5,7 +5,7 @@ class NextbusParser : public XMLParser {
   public:
     NextbusParser(const char* agency, const char* route, const char* stopID);
 
-    std::tuple<uint32_t, uint32_t> results() const override;
+    std::tuple<Prediction, Prediction> results() const override;
 
   protected:
     void xml_callback(uint8_t statusFlags, char* tagName,
@@ -19,7 +19,7 @@ class NextbusParser : public XMLParser {
   private:
     TinyXML m_xml;
     uint8_t m_buffer[150];
-    uint32_t m_seconds[2];
+    Seconds m_seconds[2];
     const char* m_agency;
     const char* m_route;
     const char* m_stopID;

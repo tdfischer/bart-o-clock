@@ -12,12 +12,7 @@ class BartParser : public XMLParser {
     };
     BartParser(const char* destination, const char* station);
 
-    struct Prediction {
-      BartLine destination;
-      uint32_t minutes;
-    };
-
-    std::tuple<uint32_t, uint32_t> results() const override;
+    std::tuple<Prediction, Prediction> results() const override;
 
     static BartLine strToBartLine(const char* abbrev);
 
@@ -34,6 +29,6 @@ class BartParser : public XMLParser {
     const char* m_destination;
     const char* m_station;
     BartLine m_currentLine;
-    uint32_t m_predictions[5];
-    uint32_t m_parsedMinutes;
+    Prediction m_predictions[5];
+    Minutes m_parsedMinutes;
 };

@@ -12,12 +12,12 @@ struct Sprite {
 struct TransitDot : public Sprite {
   TransitDot(CRGB* leds) : Sprite(leds) {}
 
-  time_t m_nextTime = 0;
+  Prediction m_nextTime;
   uint8_t m_pulseFrame = 0;
   bool validPredictions = false;
   const Stop* m_currentStop;
 
-  void setNextTime(const Stop& stop, time_t t) {
+  void setNextTime(const Stop& stop, Prediction t) {
     if (m_currentStop == &stop) {
       m_nextTime = t;
     } else {

@@ -7,7 +7,6 @@ Stop::Stop(const char* _agency, const char* _route, const char* _stopID):
     agency(_agency),
     route(_route),
     stopID(_stopID),
-    minutes({0, 0}),
     m_parser(determineParser())
 {
 }
@@ -47,10 +46,10 @@ Stop::updatePredictions()
     return false;
   } else if (m_parser->state() == XMLParser::Success) {
     Serial.println("Update complete!");
-    std::tie(minutes[0], minutes[1]) = m_parser->results();
+    std::tie(predictions[0], predictions[1]) = m_parser->results();
     m_parser->reset();
   }
-  if (minutes[0] == 0) {
+  if (!predictions[0].valid()) {
     m_backoff.failure();
     Serial.println("No next bus.");
     return false;
@@ -58,7 +57,7 @@ Stop::updatePredictions()
   Serial.print("Updated time for ");
   Serial.print(route);
   Serial.print(": ");
-  Serial.print(minutes[0]);
+  Serial.print(Minutes{predictions[0].timeRemaining()}.value);
   Serial.println(" minutes");
   m_backoff.success();
   return true;

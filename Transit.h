@@ -1,10 +1,13 @@
 #pragma once
 #include <cstdint>
-#include "NextbusParser.h"
-#include "BartParser.h"
+#include "Duration.h"
+#include <Time.h>
+#include <algorithm>
+#include <memory>
+#include <string.h>
+#include <Arduino.h>
 
-using std::min;
-using std::max;
+class XMLParser;
 
 struct Backoff {
   uint32_t multiplier = 1;
@@ -18,7 +21,44 @@ struct Backoff {
   void failure() {multiplier *= 2;nextMillis = millis() + getDelay();}
   bool throttled() const { return millis() < nextMillis; }
   uint32_t getDelay() const {
-    return min((uint32_t)maxBackoffSeconds * millisPerSeconds, max(minDelaySeconds * millisPerSeconds, (backoffSeconds * millisPerSeconds) * multiplier));
+    return std::min((uint32_t)maxBackoffSeconds * millisPerSeconds, std::max(minDelaySeconds * millisPerSeconds, (backoffSeconds * millisPerSeconds) * multiplier));
+  }
+};
+
+struct Prediction {
+  time_t timestamp;
+
+  Prediction() : timestamp(0) {}
+  Prediction(time_t t) : timestamp(t) {}
+  template<typename DurationType> explicit Prediction(const DurationType& d) : timestamp(now() + Seconds{d}.value) {}
+
+  bool valid() const {
+    return timestamp != 0;
+  }
+
+  Prediction& operator=(const time_t v) {
+    timestamp = v;
+    return *this;
+  }
+
+  Seconds timeRemaining() const {
+    return Seconds{timestamp - now()};
+  }
+
+  bool operator==(const Prediction& p) const {
+    return timestamp == p.timestamp;
+  }
+
+  bool operator<(const Prediction& p) const {
+    return valid() && timestamp < p.timestamp;
+  }
+
+  bool operator>(const time_t& t) const {
+    return valid() && timestamp > t;
+  }
+
+  operator time_t() const {
+    return timestamp;
   }
 };
 
@@ -33,7 +73,7 @@ struct Stop {
     return strcmp(stopID, other.stopID) == 0 && strcmp(route, other.route) == 0;
   }
     
-  uint32_t          minutes[2];    // Most recent predictions from server
+  Prediction predictions[2];    // Most recent predictions from server
   bool updatePredictions();
   private:
     std::shared_ptr<XMLParser> m_parser;

@@ -25,11 +25,11 @@ StopManager::update()
     m_currentUpdate = m_registrations.begin();
   }
   if (m_currentUpdate->stop.updatePredictions()) {
-    uint32_t nearestBus = 3000;
-    nearestBus = std::min(m_currentUpdate->stop.minutes[0] * 60, nearestBus);
+    Prediction nearestBus;
+    nearestBus = std::min(m_currentUpdate->stop.predictions[0], nearestBus);
     for(TransitDot* dot : m_currentUpdate->renderers) {
       if (dot) {
-        dot->setNextTime(m_currentUpdate->stop, now() + nearestBus);
+        dot->setNextTime(m_currentUpdate->stop, nearestBus);
       }
     }
     m_currentUpdate++;

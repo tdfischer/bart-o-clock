@@ -14,7 +14,6 @@ class StopManager {
     StopManager();
     void addStop(Stop stop, TransitDot* renderer);
     void update();
-    void render();
 
   private:
     std::vector<Registration> m_registrations;

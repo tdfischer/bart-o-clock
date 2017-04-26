@@ -3,6 +3,7 @@
 #include <TinyXML.h>
 #include <tuple>
 #include "XMLStreamer.h"
+#include "Transit.h"
 
 class XMLParser {
   public:
@@ -17,7 +18,7 @@ class XMLParser {
     State update();
     State state() const;
     void reset();
-    virtual std::tuple<uint32_t, uint32_t> results() const = 0;
+    virtual std::tuple<Prediction, Prediction> results() const = 0;
   protected:
     virtual void xml_callback(uint8_t statusFlags, char* tagName,
       uint16_t tagNameLen, char* data, uint16_t dataLen) = 0;

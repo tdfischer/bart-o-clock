@@ -19,17 +19,17 @@ BartParser::makeRequest(WiFiClient& client)
   client.print("\r\nConnection: Close\r\n\r\n");
 }
 
-std::tuple<uint32_t, uint32_t>
+std::tuple<Prediction, Prediction>
 BartParser::results() const
 {
-  return std::make_tuple(m_predictions[(int)strToBartLine(m_destination)], 0);
+  return std::make_tuple(m_predictions[(int)strToBartLine(m_destination)], Prediction{});
 }
 
 void
 BartParser::xml_callback(uint8_t statusFlags, char* tagName,
   uint16_t tagNameLen, char* data, uint16_t dataLen) {
   if((statusFlags & STATUS_TAG_TEXT) && !strcasecmp(tagName, "/root/station/etd/estimate/minutes")) {
-    uint32_t t = atoi(data);
+    Minutes t{atoi(data)};
     m_parsedMinutes = t;
     Serial.println("Found minutes...");
   } else if((statusFlags & STATUS_TAG_TEXT) && !strcasecmp(tagName, "/root/station/etd/abbreviation")) {
@@ -40,9 +40,9 @@ BartParser::xml_callback(uint8_t statusFlags, char* tagName,
     Serial.print("Got BART update for ");
     Serial.print((int)m_currentLine);
     Serial.print(": ");
-    Serial.println(m_parsedMinutes);
-    m_predictions[(int)m_currentLine] = min(m_predictions[(int)m_currentLine], m_parsedMinutes);
-    m_parsedMinutes = 0;
+    Serial.println(m_parsedMinutes.value);
+    m_predictions[(int)m_currentLine] = std::min(m_predictions[(int)m_currentLine], Prediction{m_parsedMinutes});
+    m_parsedMinutes = Minutes{0};
     m_currentLine = BartLine::Unknown;
   }
 }
@@ -51,7 +51,7 @@ void
 BartParser::beforeUpdate()
 {
   m_currentLine = BartLine::Unknown;
-  m_parsedMinutes = 0;
+  m_parsedMinutes = Minutes{0};
   m_predictions[strToBartLine(m_destination)] = 3000;
 }
 
