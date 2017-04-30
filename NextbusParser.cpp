@@ -35,32 +35,32 @@ NextbusParser::results() const {
 bool
 NextbusParser::afterUpdate()
 {
-  if (m_seconds[0] == 0) {
+  if (m_seconds[0] == Seconds{}) {
     Serial.println("No vehicle found :(");
     return false;
   } else {
-    Serial.println("---beep beep---");
+    Serial.print("---beep beep---  ");
+    Serial.println(Minutes{m_seconds[0]}.value);
     return true;
   }
 }
 
 void
+NextbusParser::beforeUpdate()
+{
+  m_seconds[0] = Seconds{};
+  m_seconds[1] = Seconds{};
+}
+
+void
 NextbusParser::xml_callback(uint8_t statusFlags, char* tagName,
   uint16_t tagNameLen, char* data, uint16_t dataLen) {
-  constexpr Minutes MIN_TIME{5};
   if((statusFlags & STATUS_ATTR_TEXT) && !strcasecmp(tagName, "seconds")) {
     Seconds t{atoi(data)}; // Prediction in seconds (0 if gibberish)
-    if(m_seconds[0] == Seconds{0}) {               //  No predictions yet?
+    if(m_seconds[0] == Seconds{}) {               //  No predictions yet?
       m_seconds[0] = t;               //   Save in slot 0, done
     } else {                        //  Else 1-2 existing predictions...
-      if(t <= m_seconds[0]) {         // New time sooner than slot 0?
-        m_seconds[1] = m_seconds[0];    //  Move 0 up to 1 (old 1 discarded)
-        m_seconds[0] = t;             //  Store new time in 0
-      } else if(!m_seconds[1] ||      // Slot 1 empty?
-               (t <= m_seconds[1])) { // Or new time sooner than 1?
-        m_seconds[1] = t;             //  Store new time in slot 1
-      }                             // Else discard
-      if(m_seconds[0] == m_seconds[1]) m_seconds[1] = Seconds{}; // If equal, delete 1
+      m_seconds[1] = t;
     }
   }
 }

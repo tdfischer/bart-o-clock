@@ -24,11 +24,11 @@ Stop::determineParser()
 }
 
 // Returns true if new predictions are available
-bool
+Stop::UpdateResult
 Stop::updatePredictions()
 {
   if (m_backoff.throttled()) {
-    return false;
+    return NoUpdate;
   }
 
   if (m_parser->state() == XMLParser::Ready) {
@@ -38,12 +38,12 @@ Stop::updatePredictions()
 
   m_parser->update();
   if (m_parser->state() == XMLParser::Parsing) {
-    return false;
+    return Continue;
   } else if (m_parser->state() == XMLParser::Error) {
     Serial.println("Update error.");
     m_parser->reset();
     m_backoff.failure();
-    return false;
+    return NoUpdate;
   } else if (m_parser->state() == XMLParser::Success) {
     Serial.println("Update complete!");
     std::tie(predictions[0], predictions[1]) = m_parser->results();
@@ -52,13 +52,13 @@ Stop::updatePredictions()
   if (!predictions[0].valid()) {
     m_backoff.failure();
     Serial.println("No next bus.");
-    return false;
+    return NoUpdate;
   }
   Serial.print("Updated time for ");
   Serial.print(route);
   Serial.print(": ");
-  Serial.print(Minutes{predictions[0].timeRemaining()}.value);
+  Serial.print(Minutes{predictions[0].timeRemaining(now())}.value);
   Serial.println(" minutes");
   m_backoff.success();
-  return true;
+  return Updated;
 }

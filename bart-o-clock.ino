@@ -33,7 +33,7 @@ void setup() {
   for(int i = 0; i < NUM_LEDS;i++) {
     leds[i] = CHSV(0, 0, 0);
   }
-  FastLED.setBrightness(128);
+  FastLED.setBrightness(100);
   FastLED.show();
 
   Serial.println("Graphics initialized");
@@ -56,27 +56,25 @@ void setup() {
   Serial.println("Data initialized");
 }
 
-TransitDot* graphedDot = nullptr;
+int graphedDot = 0;
 bool switchedDot = false;
 
 void loop() {
   time_t loopTime = now();
-  int smallestTime = 32760;
-  for(TransitDot& dot : dots) {
-    if (dot.validPredictions) {
-      const int dotMinutes = dot.minutesRemaining(loopTime);
-      if (dotMinutes < smallestTime) {
-        graphedDot = &dot;
-        smallestTime = dotMinutes;
-      }
+  Minutes smallestTime{32760};
+  if (loopTime % 7) {
+    if (!switchedDot) {
+      graphedDot += 1;
+      graphedDot %= 5;
+      switchedDot = true;
     }
+  } else {
+    switchedDot = false;
   }
   for(TransitDot& dot : dots) {
-    dot.animate(loopTime, &dot == graphedDot);
+    dot.animate(loopTime, &dots[graphedDot] == &dot);
   }
-  if (graphedDot) {
-    graphedDot->animateTimer(&leds[5], loopTime);
-  }
+  dots[graphedDot].animateTimer(&leds[5], loopTime);
   FastLED.show();
   wireless.update();
   stops.update();

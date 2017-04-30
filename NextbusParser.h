@@ -11,6 +11,7 @@ class NextbusParser : public XMLParser {
     void xml_callback(uint8_t statusFlags, char* tagName,
       uint16_t tagNameLen, char* data, uint16_t dataLen) override;
     void makeRequest(WiFiClient& client) override;
+    void beforeUpdate() override;
     bool afterUpdate() override;
     const char* hostname() const override {
       return "webservices.nextbus.com";

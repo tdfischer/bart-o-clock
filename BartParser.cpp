@@ -36,12 +36,14 @@ BartParser::xml_callback(uint8_t statusFlags, char* tagName,
     m_currentLine = strToBartLine(data);
     Serial.println("Found station...");
   }
-  if (m_currentLine != BartLine::Unknown && m_parsedMinutes != 0) {
+  if (m_currentLine != BartLine::Unknown && m_parsedMinutes != Minutes{}) {
     Serial.print("Got BART update for ");
     Serial.print((int)m_currentLine);
     Serial.print(": ");
     Serial.println(m_parsedMinutes.value);
-    m_predictions[(int)m_currentLine] = std::min(m_predictions[(int)m_currentLine], Prediction{m_parsedMinutes});
+    Serial.print("Old prediction: ");
+    Serial.println(m_predictions[(int)m_currentLine].timestamp);
+    m_predictions[(int)m_currentLine] = Prediction(m_parsedMinutes);
     m_parsedMinutes = Minutes{0};
     m_currentLine = BartLine::Unknown;
   }
@@ -52,7 +54,7 @@ BartParser::beforeUpdate()
 {
   m_currentLine = BartLine::Unknown;
   m_parsedMinutes = Minutes{0};
-  m_predictions[strToBartLine(m_destination)] = 3000;
+  m_predictions[strToBartLine(m_destination)] = Prediction{};
 }
 
 BartParser::BartLine

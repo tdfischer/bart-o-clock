@@ -29,8 +29,7 @@ struct Prediction {
   time_t timestamp;
 
   Prediction() : timestamp(0) {}
-  Prediction(time_t t) : timestamp(t) {}
-  template<typename DurationType> explicit Prediction(const DurationType& d) : timestamp(now() + Seconds{d}.value) {}
+  explicit Prediction(const Seconds& s) : timestamp(now() + s.value) {}
 
   bool valid() const {
     return timestamp != 0;
@@ -41,24 +40,12 @@ struct Prediction {
     return *this;
   }
 
-  Seconds timeRemaining() const {
-    return Seconds{timestamp - now()};
+  Seconds timeRemaining(time_t ref) const {
+    return Seconds{timestamp - ref};
   }
 
   bool operator==(const Prediction& p) const {
     return timestamp == p.timestamp;
-  }
-
-  bool operator<(const Prediction& p) const {
-    return valid() && timestamp < p.timestamp;
-  }
-
-  bool operator>(const time_t& t) const {
-    return valid() && timestamp > t;
-  }
-
-  operator time_t() const {
-    return timestamp;
   }
 };
 
@@ -72,9 +59,19 @@ struct Stop {
   bool operator==(const Stop& other) const {
     return strcmp(stopID, other.stopID) == 0 && strcmp(route, other.route) == 0;
   }
+
+  bool operator<(const Stop& other) const {
+    return strcmp(stopID, other.stopID) < 0;
+  }
+
+  enum UpdateResult {
+    Continue,
+    Updated,
+    NoUpdate
+  };
     
   Prediction predictions[2];    // Most recent predictions from server
-  bool updatePredictions();
+  UpdateResult updatePredictions();
   private:
     std::shared_ptr<XMLParser> m_parser;
     std::shared_ptr<XMLParser> determineParser();

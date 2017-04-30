@@ -24,14 +24,17 @@ StopManager::update()
   if (m_currentUpdate == m_registrations.end()) {
     m_currentUpdate = m_registrations.begin();
   }
-  if (m_currentUpdate->stop.updatePredictions()) {
-    Prediction nearestBus;
-    nearestBus = std::min(m_currentUpdate->stop.predictions[0], nearestBus);
+  const auto stat = m_currentUpdate->stop.updatePredictions();
+  if (stat == Stop::Continue) {
+    return;
+  }
+
+  if (stat == Stop::Updated) {
     for(TransitDot* dot : m_currentUpdate->renderers) {
       if (dot) {
-        dot->setNextTime(m_currentUpdate->stop, nearestBus);
+        dot->setPredictions(m_currentUpdate->stop, m_currentUpdate->stop.predictions[0], m_currentUpdate->stop.predictions[1]);
       }
     }
-    m_currentUpdate++;
   }
+  m_currentUpdate++;
 }
